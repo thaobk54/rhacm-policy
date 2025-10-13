@@ -1,0 +1,3 @@
+resources:
+  - placementrule.yaml
+  - placementbinding.yaml

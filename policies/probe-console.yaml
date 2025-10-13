@@ -1,0 +1,31 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: probe-console
+  namespace: rhacm-policies
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: monitoring.coreos.com/v1
+        kind: Probe
+        metadata:
+          name: openshift-console-healthz
+          namespace: openshift-monitoring
+        spec:
+          jobName: blackbox-exporter
+          module: http_2xx
+          interval: 30s
+          prober:
+            url: http://prometheus-blackbox-exporter.openshift-monitoring.svc.cluster.local:9115
+          targets:
+            staticConfig:
+              static:
+                - https://console.openshift-console.svc.cluster.local
+              labels:
+                app: openshift-console
+                health: root
+                cluster: {{hub fromManagedClusterName}}
+          tlsConfig:
+            insecureSkipVerify: true

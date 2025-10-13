@@ -1,0 +1,9 @@
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: childshift-placement
+  namespace: rhacm-policies
+spec:
+  clusterSelector:
+    matchLabels:
+      environment: childshift
