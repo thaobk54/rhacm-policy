@@ -1,0 +1,182 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: probe-apiserver
+  namespace: rhacm-policies
+  labels:
+    cluster: {{ .Values.clusterName }}
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-probe-apiserver
+        spec:
+          remediationAction: enforce
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: monitoring.coreos.com/v1
+                kind: Probe
+                metadata:
+                  name: openshift-apiserver-healthz
+                  namespace: openshift-monitoring
+                  labels:
+                    cluster: {{ .Values.clusterName }}
+                spec:
+                  jobName: blackbox-exporter
+                  module: http_2xx
+                  interval: 30s
+                  prober:
+                    scheme: http
+                    url: prometheus-blackbox-exporter.openshift-monitoring.svc.cluster.local:9115
+                  targets:
+                    staticConfig:
+                      static:
+                        - https://apiserver.openshift-kube-apiserver.svc.cluster.local/healthz
+                      labels:
+                        app: openshift-apiserver
+                        cluster: {{ .Values.clusterName }}
+                  tlsConfig:
+                    insecureSkipVerify: true
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: probe-console
+  namespace: rhacm-policies
+  labels:
+    cluster: {{ .Values.clusterName }}
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-probe-console
+        spec:
+          remediationAction: enforce
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: monitoring.coreos.com/v1
+                kind: Probe
+                metadata:
+                  name: openshift-console-healthz
+                  namespace: openshift-monitoring
+                  labels:
+                    cluster: {{ .Values.clusterName }}
+                spec:
+                  jobName: blackbox-exporter
+                  module: http_2xx
+                  interval: 30s
+                  prober:
+                    scheme: http
+                    url: prometheus-blackbox-exporter.openshift-monitoring.svc.cluster.local:9115
+                  targets:
+                    staticConfig:
+                      static:
+                        - https://console.openshift-console.svc.cluster.local
+                      labels:
+                        app: openshift-console
+                        health: root
+                        cluster: {{ .Values.clusterName }}
+                  tlsConfig:
+                    insecureSkipVerify: true
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: probe-oauth
+  namespace: rhacm-policies
+  labels:
+    cluster: {{ .Values.clusterName }}
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-probe-oauth
+        spec:
+          remediationAction: enforce
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: monitoring.coreos.com/v1
+                kind: Probe
+                metadata:
+                  name: openshift-oauth-healthz
+                  namespace: openshift-monitoring
+                  labels:
+                    cluster: {{ .Values.clusterName }}
+                spec:
+                  jobName: blackbox-exporter
+                  module: http_2xx
+                  interval: 30s
+                  prober:
+                    scheme: http
+                    url: prometheus-blackbox-exporter.openshift-monitoring.svc.cluster.local:9115
+                  targets:
+                    staticConfig:
+                      static:
+                        - https://oauth-openshift.openshift-authentication.svc.cluster.local/healthz
+                      labels:
+                        app: openshift-oauth
+                        health: healthz
+                        cluster: {{ .Values.clusterName }}
+                  tlsConfig:
+                    insecureSkipVerify: true
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: probe-router
+  namespace: rhacm-policies
+  labels:
+    cluster: {{ .Values.clusterName }}
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-probe-router
+        spec:
+          remediationAction: enforce
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: monitoring.coreos.com/v1
+                kind: Probe
+                metadata:
+                  name: openshift-router-healthz
+                  namespace: openshift-monitoring
+                  labels:
+                    cluster: {{ .Values.clusterName }}
+                spec:
+                  jobName: blackbox-exporter
+                  module: http_2xx
+                  interval: 30s
+                  prober:
+                    scheme: http
+                    url: prometheus-blackbox-exporter.openshift-monitoring.svc.cluster.local:9115
+                  targets:
+                    staticConfig:
+                      static:
+                        - http://router-internal-default.openshift-ingress.svc.cluster.local:1936/healthz
+                      labels:
+                        app: openshift-router-internal
+                        health: healthz
+                        cluster: {{ .Values.clusterName }}
+                  tlsConfig:
+                    insecureSkipVerify: true

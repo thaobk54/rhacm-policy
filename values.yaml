@@ -1,0 +1,7 @@
+clusterName: "local-cluster"
+enableBlackbox: true
+enableProbes:
+  apiserver: true
+  console: true
+  oauth: true
+  router: true

@@ -1,0 +1,99 @@
+# 1. PlacementRule: áp dụng cho tất cả child clusters
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: all-child-clusters
+  namespace: rhacm-policies
+spec:
+  clusterSelector: {}
+
+---
+# 2. Policy: triển khai Blackbox Exporter bằng HelmRelease
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: deploy-blackbox-exporter-helm
+  namespace: rhacm-policies
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: blackbox-exporter-helmrelease
+      spec:
+        remediationAction: enforce
+        namespaceSelector:
+          include: ["openshift-monitoring"]
+        object-templates:
+        # 2.1 HelmRepository: nguồn chart prometheus-community
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: source.toolkit.fluxcd.io/v1beta1
+            kind: HelmRepository
+            metadata:
+              name: prometheus-community
+              namespace: openshift-monitoring
+            spec:
+              url: https://prometheus-community.github.io/helm-charts
+              interval: 5m
+
+        # 2.2 HelmRelease: triển khai Blackbox Exporter
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: helm.toolkit.fluxcd.io/v2beta1
+            kind: HelmRelease
+            metadata:
+              name: blackbox-exporter
+              namespace: openshift-monitoring
+            spec:
+              chart:
+                spec:
+                  chart: prometheus-blackbox-exporter
+                  version: 7.0.0
+                  sourceRef:
+                    kind: HelmRepository
+                    name: prometheus-community
+                    namespace: openshift-monitoring
+              interval: 5m
+              values:
+                config:
+                  modules:
+                    http_2xx:
+                      http:
+                        follow_redirects: true
+                        preferred_ip_protocol: ip4
+                        valid_http_versions:
+                          - HTTP/1.1
+                          - HTTP/2.0
+                        tls_config:
+                          insecure_skip_verify: true
+                      prober: http
+                      timeout: 5s
+                service:
+                  port: 9115
+                  type: ClusterIP
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 128Mi
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+
+---
+# 3. PlacementBinding: liên kết policy với placement
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: bind-deploy-blackbox-exporter-helm
+  namespace: rhacm-policies
+placementRef:
+  name: all-child-clusters
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+- name: deploy-blackbox-exporter-helm
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io

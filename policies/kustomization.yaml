@@ -1,5 +1,0 @@
-resources:
-  - probe-apiserver.yaml
-  - probe-console.yaml
-  - probe-oauth.yaml
-  - probe-router.yaml

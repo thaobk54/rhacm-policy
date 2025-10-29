@@ -1,0 +1,33 @@
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: all-child-clusters
+  namespace: rhacm-policies
+spec:
+  clusterSelector: {}
+#    matchLabels:
+#      name: probe-qd57r
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: bind-probe-apiserver
+  namespace: rhacm-policies
+placementRef:
+  name: all-child-clusters
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+- name: probe-apiserver
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io
+- name: probe-console
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io
+- name: probe-oauth
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io
+- name: probe-router
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io
+
